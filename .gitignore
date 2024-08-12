@@ -8,6 +8,11 @@
 /example_data/downloaded*
 *.tar
 *.tar.gz
+
+*.png
+*.lz4
+*.pkl
+
 /discord_sandbox/
 /demo_out/
 token_channel.csv

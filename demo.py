@@ -72,6 +72,7 @@ def main():
         img_cv2 = cv2.imread(str(img_path))
 
         # Detect humans in image
+        # TODO: we can use pre-extracted detections 
         det_out = detector(img_cv2)
 
         det_instances = det_out['instances']

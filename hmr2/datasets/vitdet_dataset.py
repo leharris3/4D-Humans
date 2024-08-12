@@ -43,7 +43,8 @@ class ViTDetDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx: int) -> Dict[str, np.array]:
 
-        center = self.center[idx].copy()
+        # center = self.center[idx].copy()
+        center = self.center[idx]
         center_x = center[0]
         center_y = center[1]
 
@@ -55,15 +56,18 @@ class ViTDetDataset(torch.utils.data.Dataset):
 
         # 3. generate image patch
         # if use_skimage_antialias:
-        cvimg = self.img_cv2.copy()
-        if True:
+        # cvimg = self.img_cv2.copy()
+        
+        # TODO: never anti-alias
+        if not True:
             # Blur image to avoid aliasing artifacts
             downsampling_factor = ((bbox_size*1.0) / patch_width)
-            print(f'{downsampling_factor=}')
+            # print(f'{downsampling_factor=}')
             downsampling_factor = downsampling_factor / 2.0
             if downsampling_factor > 1.1:
                 cvimg  = gaussian(cvimg, sigma=(downsampling_factor-1)/2, channel_axis=2, preserve_range=True)
-
+        else:
+            cvimg = self.img_cv2
 
         img_patch_cv, trans = generate_image_patch_cv2(cvimg,
                                                     center_x, center_y,
@@ -78,11 +82,20 @@ class ViTDetDataset(torch.utils.data.Dataset):
         for n_c in range(min(self.img_cv2.shape[2], 3)):
             img_patch[n_c, :, :] = (img_patch[n_c, :, :] - self.mean[n_c]) / self.std[n_c]
 
+        # item = {
+        #     'img': img_patch,
+        #     'personid': int(self.personid[idx]),
+        # }
+        # item['box_center'] = self.center[idx].copy()
+        # item['box_size'] = bbox_size
+        # item['img_size'] = 1.0 * np.array([cvimg.shape[1], cvimg.shape[0]])
+        
         item = {
             'img': img_patch,
             'personid': int(self.personid[idx]),
+            'box_center': center,
+            'box_size': bbox_size,
+            'img_size': np.array([cvimg.shape[1], cvimg.shape[0]], dtype=np.float32)
         }
-        item['box_center'] = self.center[idx].copy()
-        item['box_size'] = bbox_size
-        item['img_size'] = 1.0 * np.array([cvimg.shape[1], cvimg.shape[0]])
+        
         return item
